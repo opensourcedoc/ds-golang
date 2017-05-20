@@ -9,6 +9,10 @@ import (
 	"reflect"
 )
 
+func Euclidean(p *v.Vector, q *v.Vector) (interface{}, error) {
+	return Minkowski(p, q, 2)
+}
+
 func Minkowski(p *v.Vector, q *v.Vector, n int) (interface{}, error) {
 	if n <= 0 {
 		panic("Exp should be larger than zero")
@@ -65,61 +69,63 @@ func Minkowski(p *v.Vector, q *v.Vector, n int) (interface{}, error) {
 		}
 	}
 
-	out, err := vec.ReduceBy(func(a interface{}, b interface{}) (interface{}, error) {
-		ta := reflect.TypeOf(a).String()
-		tb := reflect.TypeOf(b).String()
-
-		if !(ta == "float64" || ta == "int") &&
-			!(tb == "float64" || tb == "int") {
-			if ta != tb {
-				return nil, errors.New("Unequal Type")
-			}
-		}
-
-		switch ta {
-		case "int":
-			switch tb {
-			case "int":
-				na := a.(int)
-				nb := b.(int)
-				return na + nb, nil
-			case "float64":
-				na := a.(int)
-				nb := b.(float64)
-				return float64(na) + nb, nil
-			default:
-				return nil, errors.New("Unknown Type")
-			}
-		case "float64":
-			switch tb {
-			case "int":
-				na := a.(float64)
-				nb := b.(int)
-				return na + float64(nb), nil
-			case "float64":
-				na := a.(float64)
-				nb := b.(float64)
-				return na + nb, nil
-			default:
-				return nil, errors.New("Unknown Type")
-			}
-		case reflect.TypeOf(big.NewInt(0)).String():
-			na := a.(*big.Int)
-			nb := b.(*big.Int)
-			return na.Add(na, nb), nil
-		case reflect.TypeOf(big.NewFloat(0.0)).String():
-			na := a.(*big.Float)
-			nb := b.(*big.Float)
-			return na.Add(na, nb), nil
-		default:
-			return nil, errors.New("Unknown Type")
-		}
-	})
+	out, err := vec.ReduceBy(add)
 	if err != nil {
 		return nil, err
 	}
 
 	return out, nil
+}
+
+func add(a interface{}, b interface{}) (interface{}, error) {
+	ta := reflect.TypeOf(a).String()
+	tb := reflect.TypeOf(b).String()
+
+	if !(ta == "float64" || ta == "int") &&
+		!(tb == "float64" || tb == "int") {
+		if ta != tb {
+			return nil, errors.New("Unequal Type")
+		}
+	}
+
+	switch ta {
+	case "int":
+		switch tb {
+		case "int":
+			na := a.(int)
+			nb := b.(int)
+			return na + nb, nil
+		case "float64":
+			na := a.(int)
+			nb := b.(float64)
+			return float64(na) + nb, nil
+		default:
+			return nil, errors.New("Unknown Type")
+		}
+	case "float64":
+		switch tb {
+		case "int":
+			na := a.(float64)
+			nb := b.(int)
+			return na + float64(nb), nil
+		case "float64":
+			na := a.(float64)
+			nb := b.(float64)
+			return na + nb, nil
+		default:
+			return nil, errors.New("Unknown Type")
+		}
+	case reflect.TypeOf(big.NewInt(0)).String():
+		na := a.(*big.Int)
+		nb := b.(*big.Int)
+		return na.Add(na, nb), nil
+	case reflect.TypeOf(big.NewFloat(0.0)).String():
+		na := a.(*big.Float)
+		nb := b.(*big.Float)
+		return na.Add(na, nb), nil
+	default:
+		return nil, errors.New("Unknown Type")
+	}
 }
 
 func checkLength(p *v.Vector, q *v.Vector) {
