@@ -125,6 +125,10 @@ func add(a interface{}, b interface{}) (interface{}, error) {
 	}
 }
 
+func Maximum(p *v.Vector, q *v.Vector) (interface{}, error) {
+	return Chebyshev(p, q)
+}
+
 func Chebyshev(p *v.Vector, q *v.Vector) (interface{}, error) {
 	checkLength(p, q)
 
