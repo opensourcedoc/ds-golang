@@ -66,7 +66,7 @@ func Minkowski(p *v.Vector, q *v.Vector, n int) (interface{}, error) {
 		}
 	}
 
-	out, err := vec.ReduceBy(add)
+	out, err := vec.Reduce(add)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func Chebyshev(p *v.Vector, q *v.Vector) (interface{}, error) {
 		}
 	}
 
-	out, err := vec.ReduceBy(max)
+	out, err := vec.Reduce(max)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,72 @@ func Manhattan(p *v.Vector, q *v.Vector) (interface{}, error) {
 		}
 	}
 
-	out, err := vec.ReduceBy(add)
+	out, err := vec.Reduce(add)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func Canberra(p *v.Vector, q *v.Vector) (interface{}, error) {
+	checkLength(p, q)
+
+	pAbs, err := p.Map(abs)
+	if err != nil {
+		return nil, err
+	}
+
+	qAbs, err := q.Map(abs)
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := p.Sub(q)
+	if err != nil {
+		return nil, err
+	}
+
+	sAbs, err := s.Map(abs)
+	if err != nil {
+		return nil, err
+	}
+
+	_len := s.Len()
+	vec := v.WithSize(_len)
+	for i := 0; i < _len; i++ {
+		a := sAbs.GetAt(i)
+		ts := reflect.TypeOf(a).String()
+
+		b := pAbs.GetAt(i)
+		c := qAbs.GetAt(i)
+		switch ts {
+		case "int":
+			na := float64(a.(int))
+			nb := float64(b.(int))
+			nc := float64(c.(int))
+			vec.SetAt(i, na/(nb+nc))
+		case "float64":
+			na := a.(float64)
+			nb := b.(float64)
+			nc := c.(float64)
+			vec.SetAt(i, na/(nb+nc))
+		case reflect.TypeOf(big.NewInt(0)).String():
+			na := new(big.Float).SetInt(a.(*big.Int))
+			nb := new(big.Float).SetInt(b.(*big.Int))
+			nc := new(big.Float).SetInt(c.(*big.Int))
+			vec.SetAt(i, na.Quo(na, nb.Add(nb, nc)))
+		case reflect.TypeOf(big.NewFloat(0.0)).String():
+			na := a.(*big.Float)
+			nb := b.(*big.Float)
+			nc := c.(*big.Float)
+			vec.SetAt(i, na.Quo(na, nb.Add(nb, nc)))
+		default:
+			return nil, errors.New("Unknown Type")
+		}
+	}
+
+	out, err := vec.Reduce(add)
 	if err != nil {
 		return nil, err
 	}
@@ -299,6 +364,35 @@ func max(a interface{}, b interface{}) (interface{}, error) {
 		} else {
 			return nb, nil
 		}
+	default:
+		return nil, errors.New("Unknown Type")
+	}
+}
+
+func abs(a interface{}) (interface{}, error) {
+	ta := reflect.TypeOf(a).String()
+
+	switch ta {
+	case "int":
+		na := a.(int)
+		if na > 0 {
+			return na, nil
+		} else {
+			return -na, nil
+		}
+	case "float64":
+		na := a.(float64)
+		if na > 0 {
+			return na, nil
+		} else {
+			return -na, nil
+		}
+	case reflect.TypeOf(big.NewInt(0)).String():
+		na := a.(*big.Int)
+		return na.Abs(na), nil
+	case reflect.TypeOf(big.NewFloat(0.0)).String():
+		na := a.(*big.Float)
+		return na.Abs(na), nil
 	default:
 		return nil, errors.New("Unknown Type")
 	}
