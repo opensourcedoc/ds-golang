@@ -3,7 +3,7 @@ package distance
 import (
 	"errors"
 	"github.com/ALTree/bigfloat"
-	v "github.com/cwchentw/algo-golang/vector"
+	v "github.com/cwchentw/algo-golang/vector/generics"
 	"math"
 	"math/big"
 	"reflect"

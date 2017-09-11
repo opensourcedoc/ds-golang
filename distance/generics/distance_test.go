@@ -1,7 +1,7 @@
 package distance
 
 import (
-	vec "github.com/cwchentw/algo-golang/vector"
+	vec "github.com/cwchentw/algo-golang/vector/generics"
 	"math"
 	"testing"
 )
