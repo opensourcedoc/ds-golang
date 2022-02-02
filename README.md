@@ -6,8 +6,4 @@ The repo implements common formulas and algorithms in data science in Go. The pa
 
 ## Copyright
 
-2017, Michael Chen
-
-## License
-
-MIT
+Copyright (c) 2017 Michael Chen. Licensed under MIT
